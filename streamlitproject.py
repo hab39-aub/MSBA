@@ -1,3 +1,4 @@
+from audioop import avg
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -12,8 +13,8 @@ import streamlit.components.v1 as html
 from  PIL import Image
 # creating the Menue tab
 with st.sidebar:
-    choose = option_menu("App Gallery", ["About", "Price Predictor", "Visualizations"],
-                         icons=['house', 'piggy-bank-fill', 'graph-up'],
+    choose = option_menu("App Gallery", ["About", "Data View", "Visualizations", "Price Predictor"],
+                         icons=['house', 'gear','graph-up', 'piggy-bank-fill'],
                          menu_icon="app-indicator", default_index=0,
                          styles={
         "container": {"padding": "5!important", "background-color": "#fafafa"},
@@ -30,23 +31,32 @@ if choose =="About":
     st.write("This app will help you better price the cars you sell by allowing predictions of price based on historic sales data. The price predictor allows custom picking of car specs like model manufacture year, model type, engine size, etc.. It then predicts the price by running your choice of a Decision Tree or Linear Regresson Models.")
     st.write("The data is cleaned and preprocessed automatically through the pipeline. Upon adding new data and updating the excel file, the application can be ran again and the visuals would be updated.")
 
-
+# If View Data tab was pressed
+elif choose =="Data View":
+    st.dataframe(df,width=900,height=800)
+    st.sidebar.write("Total Observations are:",len(df)," Cars")
+    st.sidebar.write("Latest Model Year is:",max(df['year']))
+    st.sidebar.write("Oldest Model Year is:",min(df['year']))
 
 # If Visualiztions tab was pressed
 elif choose == 'Visualizations':
     st.title('Exploratory Data Analysis of Mercedes Benz Car Models ')
-    col1,col2=st.columns(2)
+    yeardic = df['year'].unique()
+    yearfilter = st.sidebar.selectbox(label = "Select Model Year", options = yeardic)
+    dfyear = df.loc[df['year'] == yearfilter]
+    st.sidebar.write("Average Car Price in  ",yearfilter, "is: ", round(dfyear.price.mean()))
+    st.sidebar.write("Most Selling Model in ",yearfilter, "is: ", dfyear.value_counts().idxmax()[0])
+    st.sidebar.write("Average MPG for  ",yearfilter, "Cars is: ", round(dfyear.mpg.mean(),0))
 # I split the checkboxes into 2 columns for a better stack
-    with col1:
-        if st.checkbox("View data"):
-            st.write(df)
-    with col2:
-        if st.checkbox("Price Vs Model"):
+    container1 = st.container()
+    col1, col2 = st.columns(2)
+    with container1:
+        with col1:
             plt.figure(figsize=(20,8),dpi=80)
             ax=plt.axes()
             ax.set_facecolor('Black')
-            plt.bar(df['model'],df['price'],color='white')
-            plt.scatter(df['model'],df['price'],s=100,color='red')
+            plt.bar(dfyear['model'],dfyear['price'],color='white')
+            plt.scatter(dfyear['model'],dfyear['price'],s=100,color='red')
             plt.title('Model Vs. Price',color='black',fontsize=25)
             plt.xticks(rotation=50,color='black')
             plt.yticks(color='black')
@@ -55,10 +65,9 @@ elif choose == 'Visualizations':
             graph1 = plt.show()
             st.set_option('deprecation.showPyplotGlobalUse', False)
             st.pyplot(graph1)
-    with col1:
-        if st.checkbox("Dominant Fuel Type"):
-            fuels = pd.DataFrame(df['fuelType'].value_counts()) 
-            group = df.groupby(df['fuelType']) 
+        with col2:
+            fuels = pd.DataFrame(dfyear['fuelType'].value_counts()) 
+            group = dfyear.groupby(dfyear['fuelType']) 
             mean_price = pd.DataFrame(group.price.mean())
             fuels.reset_index(level=0, inplace=True) 
             fuels.columns = ('fuelType', 'size') 
@@ -73,22 +82,26 @@ elif choose == 'Visualizations':
             graph2 = plt.show()
             st.set_option('deprecation.showPyplotGlobalUse', False)
             st.pyplot(graph2)
-    with col2:
-        if st.checkbox("Engine Size per Model"):
-            m = df['model']
-            s = df['engineSize']
+    container2 = st.container()
+    col3, col4 = st.columns(2)
+    with container2:
+        with col3: 
+            m = dfyear['model']
+            s = dfyear['engineSize']
             plt.stem(m, s)
             plt.xticks(rotation=90)
             plt.title('Engine Size')
-            graph3 = plt.show()
+            #graph3 = plt.figure(figsize=(6,4))
+            graph3=plt.show()
             st.set_option('deprecation.showPyplotGlobalUse', False)
-            st.pyplot(graph3)
-    with col1:
-        if st.checkbox("MPG by Model"):
-            graph4 = sns.barplot(x="mpg", y="model", data=df)
+            st.pyplot(graph3) 
+
+        with col4:
+            graph4 = sns.barplot(x="mpg", y="model", data=dfyear)
             plt.title("Miles per gallon")
             st.set_option('deprecation.showPyplotGlobalUse', False)
             st.pyplot(graph4.figure)
+        
 # If Price Predictor was selected
 elif choose == 'Price Predictor':
     st.title("Predict The Price of Your Mercedes")
@@ -107,9 +120,9 @@ elif choose == 'Price Predictor':
     transmission_list = ['automatic', 'manual', 'other', 'semi-auto']
     fuel_list = ['diesel', 'hybrid', 'other', 'petrol']
 
-    year = st.slider("Enter the year", 1970, 2021)
+    year = st.slider("Select the year", 1970, 2021)
 
-    engine_size = st.number_input('Enter Engine Size  (range = 0 - 7)')
+    engine_size = st.number_input('Select Engine Size  (range = 0 - 7)')
 
     model_choice = st.selectbox(label='Select Car Model', options=model_list)
     models = model_dic[model_choice]
