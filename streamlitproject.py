@@ -1,4 +1,3 @@
-from nbformat import write
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -6,12 +5,12 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.linear_model import LinearRegression
-import random
 import matplotlib.pyplot as plt
 import seaborn as sns
 from streamlit_option_menu import option_menu
 import streamlit.components.v1 as html
 from  PIL import Image
+# creating the Menue tab
 with st.sidebar:
     choose = option_menu("App Gallery", ["About", "Price Predictor", "Visualizations"],
                          icons=['house', 'piggy-bank-fill', 'graph-up'],
@@ -25,22 +24,19 @@ with st.sidebar:
     )
 df = pd.read_csv('merc.csv')
 import streamlit as st
-#st.set_page_config('Mercedes Price Prediction App')
-#st.title('Predict Mercedes Car Prices (in Euros)')
-#menu_list = ['Visualization', "Predict Price"]
-#menu = st.radio("Menu", menu_list)
+# If About tab was pressed
 if choose =="About":
     st.title("Mercedes Hub")
     st.write("This app will help you better price the cars you sell by allowing predictions of price based on historic sales data. The price predictor allows custom picking of car specs like model manufacture year, model type, engine size, etc.. It then predicts the price by running your choice of a Decision Tree or Linear Regresson Models.")
-    st.write("The data is cleaned and preprocessed automatically through the pipeline")
+    st.write("The data is cleaned and preprocessed automatically through the pipeline. Upon adding new data and updating the excel file, the application can be ran again and the visuals would be updated.")
 
 
 
-
+# If Visualiztions tab was pressed
 elif choose == 'Visualizations':
     st.title('Exploratory Data Analysis of Mercedes Benz Car Models ')
     col1,col2=st.columns(2)
-
+# I split the checkboxes into 2 columns for a better stack
     with col1:
         if st.checkbox("View data"):
             st.write(df)
@@ -75,6 +71,7 @@ elif choose == 'Visualizations':
             ax1.axis('equal') 
             plt.title("Percentage of Fuels ")
             graph2 = plt.show()
+            st.set_option('deprecation.showPyplotGlobalUse', False)
             st.pyplot(graph2)
     with col2:
         if st.checkbox("Engine Size per Model"):
@@ -84,16 +81,18 @@ elif choose == 'Visualizations':
             plt.xticks(rotation=90)
             plt.title('Engine Size')
             graph3 = plt.show()
+            st.set_option('deprecation.showPyplotGlobalUse', False)
             st.pyplot(graph3)
     with col1:
         if st.checkbox("MPG by Model"):
             graph4 = sns.barplot(x="mpg", y="model", data=df)
             plt.title("Miles per gallon")
+            st.set_option('deprecation.showPyplotGlobalUse', False)
             st.pyplot(graph4.figure)
-
+# If Price Predictor was selected
 elif choose == 'Price Predictor':
     st.title("Predict The Price of Your Mercedes")
-
+# Defining the choices lists available
     model_dic = {'a class': 0, 'b class': 1, 'c class': 2, 'cl class': 3, 'cla class': 4, 'clc class': 5, 'clk': 6,
                  'cls class': 7, 'e class': 8, 'g class': 9, 'gl class': 10, 'gla class': 11, 'glb class': 12,
                  'glc class': 13, 'gle class': 14, 'gls class': 15, 'm class': 16, 'r class': 17, 's class': 18,
@@ -121,14 +120,15 @@ elif choose == 'Price Predictor':
     fuel_choice = st.selectbox(label='Select Fuel Type', options=fuel_list)
     fuels = fuel_dic[fuel_choice]
     data = pd.read_csv('merc.csv')
+# Feuture engineering and preprocessing
+
     data['models'] = data['model'].str.strip()
     df = data.drop('model', axis='columns')
+#One hot encoding transmission and fuel type
 
     OH_encoder = OneHotEncoder(sparse=False)
     encode_data = pd.DataFrame(OH_encoder.fit_transform(df[['transmission', 'fuelType']]))
-
     encode_data.columns = ['Automatic', 'Manual', 'Other', 'Semi-Auto', 'Diesel', 'Hybrid', 'Other', 'Petrol']
-
     merc_data = pd.concat([df, encode_data], axis=1)
     df1 = merc_data.drop(['transmission', 'fuelType', 'models'], axis='columns')
     df2 = pd.get_dummies(df.models)
@@ -137,7 +137,7 @@ elif choose == 'Price Predictor':
     y = df3.price
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
-
+# Two regression models trained and app user can choose from them
     decision_tree = DecisionTreeRegressor()
     linear_reg = LinearRegression()
 
