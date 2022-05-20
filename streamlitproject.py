@@ -23,7 +23,6 @@ hide_streamlit_style = """
             </style>
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-@st.cache
 # creating the Menue tab
 with st.sidebar:
     choose = option_menu("App Gallery", ["About", "Data View", "Visualizations", "Price Predictor"],
