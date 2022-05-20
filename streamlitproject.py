@@ -13,6 +13,7 @@ import streamlit.components.v1 as html
 from  PIL import Image
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import mean_squared_error, make_scorer
+@st.cache
 
 # Removing hamburger menue and "made with streamlit"
 hide_streamlit_style = """
