@@ -11,6 +11,18 @@ import seaborn as sns
 from streamlit_option_menu import option_menu
 import streamlit.components.v1 as html
 from  PIL import Image
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics import mean_squared_error, make_scorer
+
+# Removing hamburger menue and "made with streamlit"
+hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
 # creating the Menue tab
 with st.sidebar:
     choose = option_menu("App Gallery", ["About", "Data View", "Visualizations", "Price Predictor"],
@@ -153,14 +165,16 @@ elif choose == 'Price Predictor':
 # Two regression models trained and app user can choose from them
     decision_tree = DecisionTreeRegressor()
     linear_reg = LinearRegression()
+    mse = make_scorer(mean_squared_error, squared=False)
 
     decision_tree.fit(X_train.values, y_train.values)
     linear_reg.fit(X_train.values, y_train.values)
 
-    decision_score = decision_tree.score(X_test.values, y_test.values)
-    linear_score = linear_reg.score(X_test.values, y_test.values)
+    #decision_score = decision_tree.score(X_test.values, y_test.values)
+    #linear_score = linear_reg.score(X_test.values, y_test.values)
     column_data = X.columns.values
-
+    lr_score = cross_val_score(linear_reg,X_test.values,y_test.values,cv=5,scoring=mse)
+    dt_score = cross_val_score(decision_tree,X_test.values,y_test.values,cv=5,scoring=mse)
 
     def predict_price_decision(model, _year, engineSize, transmission, fuel):
         try:
@@ -211,12 +225,12 @@ elif choose == 'Price Predictor':
     select_alg = st.selectbox('Choose Predictor', alg)
     if st.button('Predict Price'):
         if select_alg == 'Decision Tree Regression':
-            st.write('Accuracy Score', decision_score)
+            st.write('Average RMSE', dt_score.mean())
             st.subheader(predict_price_decision(models, year, engine_size, transmissions, fuels))
             st.markdown("<h5 style='text-align: left;'> Euros </h5>", unsafe_allow_html=True)
 
         elif select_alg == 'Linear Regression':
-            st.write('Accuracy Score', linear_score)
+            st.write('Average RMSE', lr_score.mean())
             predicted_price = st.subheader(predict_price_linear(models, year, engine_size, transmissions, fuels))
 
         
