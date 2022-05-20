@@ -7,6 +7,5 @@ pandas==1.2.3
 joblib==0.16.0
 scikit-learn
 streamlit_option_menu
-cross_val_score
 make_scorer
 mean_squared_error
