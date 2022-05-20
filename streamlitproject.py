@@ -13,7 +13,7 @@ import streamlit.components.v1 as html
 from  PIL import Image
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import mean_squared_error, make_scorer
-@st.cache
+
 
 # Removing hamburger menue and "made with streamlit"
 hide_streamlit_style = """
@@ -23,7 +23,7 @@ hide_streamlit_style = """
             </style>
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
+@st.cache
 # creating the Menue tab
 with st.sidebar:
     choose = option_menu("App Gallery", ["About", "Data View", "Visualizations", "Price Predictor"],
